@@ -17,17 +17,22 @@
 
 #!/usr/bin/env python
 
-from fenics_ice.backend import Function, Vector, function_get_values
+from fenics_ice.backend import Function, Vector, function_get_values, function_new_conjugate_dual
 
 import os
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 
 import sys
+sys.path.append('/Users/danielgoldberg/Documents/fenics_ice/randomized_eigendecomposition')
+from randomized_eigendecomposition.randomized_eigendecomposition import randomized_eigendecomposition_GHEP
+
+import sys
 import resource
 
 from pathlib import Path
 import datetime
+from IPython import embed
 
 # assure we're not using tlm_adjoint version
 from fenics_ice.eigendecomposition import eigendecompose
@@ -110,6 +115,27 @@ def run_eigendec(config_file):
         # reg_op.inv_action(ddJ_val.vector(), xg.vector()) <- gnhep_prior
         return function_get_values(ddJ_val)
 
+    def A_actions(X):
+        Y = [];
+        for x in X:
+            _, _, ddJ_val = slvr.ddJ.action(cntrl, x)
+            Y.append(ddJ_val)
+        return Y
+
+    def B_action(x):
+        y = function_new_conjugate_dual(x)
+        reg_op.action(x.vector(),y.vector())
+        return y
+
+    def B_inv_actions(X):
+        Y = [];
+        for x in X:
+            y = function_new_conjugate_dual(x)
+            reg_op.inv_action(x.vector(),y.vector())
+            Y.append(y)
+        return Y      
+
+
     @count_calls()
     def prior_action(x):
         """Define the action of the B matrix (prior)"""
@@ -139,16 +165,34 @@ def run_eigendec(config_file):
                                                                  prior_pc=prior.LaplacianPC(reg_op)),
                                  monitor=slepc_monitor_callback(params, space, results))
 
+        lamRand, vr2 = randomized_eigendecomposition_GHEP(
+         space, A_actions, B_inv_actions, B_action, 20,
+         p=20)
+
+
+
         log.info("Finished eigendecomposition")
         vr = results['vr']
-        lam = results['lam']
+        lamSlep = results['lam']
+
+        from fenics import File
+        for i, vr_ in enumerate(vr):
+          File(f"eigenvectorSlepc_{i:d}.pvd") << vr_
+        for i, vr_ in enumerate(vr2):
+          File(f"eigenvectorRandom_{i:d}.pvd") << vr_
+
+        np.savez('eigenvals',lamRand=lamRand,lamSlep=lamSlep)
+
+        exit()
+
+
 
         # Check the eigenvectors & eigenvalues
-        if(params.eigendec.test_ed):
+        if(False):
             ED.test_eigendecomposition(esolver, results, space, params)
 
             if num_eig > 100:
-                log.warning("Requesting inner product of more than 100 EVs, this is expensive!")
+                loolve.warning("Requesting inner product of more than 100 EVs, this is expensive!")
             # Check for B (not B') orthogonality & normalisation
             for i in range(num_eig):
                 reg_op.action(vr[i].vector(), xg.vector())

@@ -1,5 +1,4 @@
 #Sample configuration file for fenics_ice
-
 [io] #Directory specification
 
 #gamma_alpha =/= 1e6 (discrete cost func) but equivalent to initial test case
@@ -8,6 +7,7 @@ input_dir = "./input"
 output_dir = "./output"
 diagnostics_dir = "./diagnostics"
 data_file = "ismipc_input.h5"
+write_diagnostics = true
 
 # All these take default values prefixed by run_name
 # They are settable to enable restarting from different sims
@@ -32,7 +32,7 @@ random_seed = 0
 [mesh]
 
 mesh_filename = "ismip_mesh.xml"
-periodic_bc = false
+periodic_bc = true
 
 [obs]
 
@@ -41,8 +41,8 @@ pts_len = 2000.0
 
 [inversion]
 
-m = 10 # default 30
-max_iter = 200
+m = 30 # default 30
+max_iter = 1000
 
 alpha_active = true
 beta_active = false
@@ -52,8 +52,8 @@ delta_alpha = 7.071067e-06 #5.0e-6 #-2
 gamma_beta = 0.0
 delta_beta = 0.0
 
-ftol = 1e-4
-#gtol = 1e-12
+ftol = 1e-10
+#gtol = 1e-10
 verbose = true
 
 #delta_lbfgs = 1.0e3
@@ -82,8 +82,8 @@ nonlinear_solver = "newton"
 linear_solver = "cg"
 preconditioner = "hypre_amg"
 maximum_iterations = 25
-absolute_tolerance = 1.0e-7
-relative_tolerance = 1.0e-8
+absolute_tolerance = 1.0e-8
+relative_tolerance = 1.0e-9
 convergence_criterion = "incremental"
 error_on_nonconvergence = true
 
@@ -103,7 +103,7 @@ num_sens = 5 #TODO rename
 
 [eigendec]
 
-num_eig = 100
+num_eig = 900
 eig_algo = "slepc"
 misfit_only = true
 
@@ -134,6 +134,19 @@ qoi = 'h2' #or 'vaf'
 [mass_solve]
 
 use_cg_thickness = true
+
+[obs_sens]
+#perturb_locx: float = np.nan
+#    perturb_locy: float = np.nan
+#    perturb_mag: float = np.nan
+#    perturb_component: str = 'none'
+perturb_locx = 10000.0
+perturb_locy = 30000.0
+perturb_mag = 0.125
+perturb_component = "v"
+perturb_sgn = "n"
+perturb_radius = 5000.0
+
 
 [testing]
 

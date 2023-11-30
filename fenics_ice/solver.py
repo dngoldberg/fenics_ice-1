@@ -77,11 +77,7 @@ def interpolation_matrix(x_coords, y_space):
 
 
 def Amat_obs_action(P, Rvec, vec_cg, dg_space):
-    # This function implements the Rvec*P*D action on a P1 function
-    #  where D is a projection into DG space
-    # 
     # to be called for each component of velocity
-    #
 
     test, trial = TestFunction(dg_space), TrialFunction(dg_space)
     vec_dg = Function(dg_space)
@@ -1250,6 +1246,7 @@ class ssa_solver:
         do_alpha = invconfig.alpha_active
         do_beta = invconfig.beta_active
 
+
         u, v = split(self.U)
 
         # Observed velocities
@@ -1258,6 +1255,32 @@ class ssa_solver:
         u_std = self.u_std
         v_std = self.v_std
         uv_obs_pts = self.uv_obs_pts
+
+        if self.params.obs_sens.perturb_component != 'none':
+            
+            pert_mag = self.params.obs_sens.perturb_mag
+            pert_locx = self.params.obs_sens.perturb_locx
+            pert_locy = self.params.obs_sens.perturb_locy
+            pert_rad = self.params.obs_sens.perturb_radius
+            sign = self.params.obs_sens.perturb_sgn
+
+            xpts = uv_obs_pts[:,0]
+            ypts = uv_obs_pts[:,1]
+
+            pert_dist = np.sqrt((xpts-pert_locx)**2 + (ypts-pert_locy)**2)
+            Idx_update = (pert_dist<pert_rad)
+
+            if (sign == 'p'):
+                pert_mag = pert_mag
+            elif (sign == 'n'): 
+                pert_mag = -1 * pert_mag
+            else:
+                pert_mag = 0.
+
+            if (self.params.obs_sens.perturb_component == 'u'): 
+                u_obs[Idx_update] = u_obs[Idx_update] + pert_mag * np.exp(-pert_dist[Idx_update]**2/pert_rad**2)
+            elif (self.params.obs_sens.perturb_component == 'v'):
+                v_obs[Idx_update] = v_obs[Idx_update] + pert_mag * np.exp(-pert_dist[Idx_update]**2/pert_rad**2)
 
         # Control functions
         alpha = self.alpha

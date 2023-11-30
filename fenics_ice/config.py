@@ -277,6 +277,12 @@ class ObsSensCfg(ConfigPrinter):
     qoi: str = 'vaf'
     phase_name: str = 'obs_sens'
     phase_suffix: str = ''
+    perturb_locx: float = np.nan
+    perturb_locy: float = np.nan
+    perturb_radius: float = np.nan
+    perturb_mag: float = np.nan
+    perturb_sgn: str = 'p'
+    perturb_component: str = 'none'
     
 
 @dataclass(frozen=True)

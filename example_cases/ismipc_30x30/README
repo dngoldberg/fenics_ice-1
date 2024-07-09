@@ -1,0 +1,4 @@
+to get output to test gradients:
+
+1. ismipc_30x30.sh
+2. test_gradient.sh

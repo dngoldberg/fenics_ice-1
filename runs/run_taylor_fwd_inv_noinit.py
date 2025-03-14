@@ -25,7 +25,7 @@ os.environ["OPENBLAS_NUM_THREADS"] = "1"
 
 import sys
 
-from runs import run_forward
+from runs import run_forward_nomixedspace as run_forward
 from IPython import embed
 
 from fenics_ice.backend import clear_caches, compute_gradient, \
@@ -81,7 +81,7 @@ def test_tv_run_forward(config_file):
 
     cntrl_init = [f.copy(deepcopy=True) for f in cntrl]
 
-    seeds = {'alpha': 1.0, 'beta': 1e-1}
+    seeds = {'alpha': params.taylor.scale_alpha, 'beta': params.taylor.scale_beta}
 
     for cntrl_curr, cntrl_curr_init, dJ_curr in zip(cntrl, cntrl_init, dJ):
         min_order = taylor_test(lambda cntrl_val: forward_ts(cntrl_val,

@@ -93,6 +93,13 @@ class ConfigParser(object):
             melt_dict = {}
         self.melt = MeltParamCfg(**melt_dict)
 
+        # Optional taylor test section
+        try:
+            taylor_dict = self.config_dict['taylor']
+        except KeyError:
+            taylor_dict = {}
+        self.taylor = TaylorCfg(**taylor_dict)
+
         # Optional invsigma section
         try:
             inv_sigma_dict = self.config_dict['invsigma']
@@ -322,6 +329,14 @@ class InvSigmaCfg(ConfigPrinter):
             "Provide only one of npatches, patwnscale in [invsigma]"
         if self.npatches is None and self.patch_downscale is None:
             object.__setattr__(self, 'patch_downscale', 0.1)
+
+@dataclass(frozen=True)
+class TaylorCfg(ConfigPrinter):
+    """
+    Configuration related to taylor test
+    """
+    scale_alpha: float = 1.e-3
+    scale_beta: float = 1.e-3
 
 @dataclass(frozen=True)
 class EigenDecCfg(ConfigPrinter):

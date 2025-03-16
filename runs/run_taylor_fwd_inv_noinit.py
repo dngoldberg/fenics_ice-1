@@ -44,6 +44,7 @@ def test_tv_run_forward(config_file):
     EQReset()
 
     mdl_out = run_forward.run_forward(config_file)
+    params = mdl_out.params
 
     slvr = mdl_out.solvers[0]
 
